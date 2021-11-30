@@ -2,7 +2,7 @@ import com.modrinth.minotaur.TaskModrinthUpload
 
 plugins {
 	id "java-library"
-	id "fabric-loom" version "0.9.+"
+	id "fabric-loom" version "0.10-SNAPSHOT"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 	id "com.modrinth.minotaur" version "1.2.1"
 	id "org.cadixdev.licenser" version "0.6.1"
@@ -10,21 +10,22 @@ plugins {
 
 ext {
 	commonGradleBranch = "master"
-	minecraftVersion = "1.17.1"
-	yarnMappings = "1.17.1+build.40"
-	loaderVersion = "0.11.6"
-	fabricAPIVersion = "0.37.0+1.17"
-	clothConfigVersion = "5.0.34"
-	modMenuVersion = "2.0.2"
-	autoConfigVersion = "3.3.1"
+	minecraftVersion = "1.18"
+	yarnMappings = "1.18+build.1"
+	loaderVersion = "0.12.6"
+	fabricAPIVersion = "0.43.1+1.18"
+	clothConfigVersion = "6.0.42"
+	modMenuVersion = "3.0.0"
+	includeClothConfig = true
 }
 version = "2.1.0-fabric"
 group = "com.therandomlabs.vanilladeathchest"
 archivesBaseName = "vanilladeathchest"
 
-apply from: "https://raw.githubusercontent.com/jhbuchanan45/Common-Gradle/main/fabric.gradle"
+// just be normal please
+apply from: file("./common_fabric.gradle")
 
-if (project.hasProperty("curseForgeAPIKey")) {
+/*if (project.hasProperty("curseForgeAPIKey")) {
 	curseforge {
 		apiKey = project.curseForgeAPIKey
 
@@ -83,4 +84,4 @@ if (project.hasProperty("modrinthToken")) {
 		addFile(sourcesJar)
 		addFile(javadocJar)
 	}
-}
+}*/

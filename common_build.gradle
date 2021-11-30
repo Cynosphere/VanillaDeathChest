@@ -1,0 +1,360 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.util.GradleVersion
+
+def branch = project.findProperty("commonGradleBranch") ?: "main"
+def gradle4 = GradleVersion.current() < GradleVersion.version("5.0")
+def javaVersion = project.findProperty("javaVersion") ?: JavaVersion.VERSION_1_8
+def majorJavaVersion = javaVersion.getMajorVersion()
+def majorJavaVersionInt = majorJavaVersion.toInteger()
+def useSpotBugs = !project.hasProperty("useSpotBugs") || project.useSpotBugs
+def testing = !project.hasProperty("testing") || project.testing
+def defaultCompileDependencies =
+		!project.hasProperty("defaultCompileDependencies") || project.defaultCompileDependencies
+def runnable = project.hasProperty("mainClass")
+def jacocoMinimumInstructionCoverage = project.hasProperty("jacocoMinimumInstructionCoverage") ?
+		project.jacocoMinimumInstructionCoverage : 0.9
+def jacocoExcludes = project.findProperty("jacocoExcludes") ?: []
+def setAutomaticModuleName = majorJavaVersionInt < 9 ||
+		!project.hasProperty("setAutomaticModuleName") || project.setAutomaticModuleName
+def includeLicense = !project.hasProperty("includeLicense") || project.includeLicense
+def buildSourcesJar = !project.hasProperty("buildSourcesJar") || project.buildSourcesJar
+def buildJavadocJar = !project.hasProperty("buildJavadocJar") || project.buildJavadocJar
+def registerDefaultMavenPublication = !project.hasProperty("registerDefaultMavenPublication") ||
+		project.registerDefaultMavenPublication
+
+buildscript {
+	repositories {
+		mavenCentral()
+
+		gradlePluginPortal()
+
+		dependencies {
+
+			//I'm not sure why I can't just use gradle4.
+			if (GradleVersion.current() >= GradleVersion.version("5.0")) {
+				//classpath "com.diffplug.spotless:spotless-plugin-gradle:5.12.1"
+
+				if (!project.hasProperty("useSpotBugs") || project.useSpotBugs) {
+					classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.0"
+				}
+
+				//classpath "net.ltgt.gradle:gradle-errorprone-plugin:2.0.0"
+			}
+		}
+	}
+}
+
+apply plugin: "java-library"
+apply plugin: "idea"
+apply plugin: "maven-publish"
+//apply plugin: "checkstyle"
+//apply plugin: "pmd"
+
+if (!gradle4) {
+	//apply plugin: com.diffplug.gradle.spotless.SpotlessPlugin
+
+	if (useSpotBugs) {
+		apply plugin: com.github.spotbugs.snom.SpotBugsPlugin
+	}
+
+	//apply plugin: net.ltgt.gradle.errorprone.ErrorPronePlugin
+}
+
+if (testing) {
+	apply plugin: "jacoco"
+}
+
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	guavaVersion = "30.1.1-jre"
+	slf4jVersion = "2.0.0-alpha1"
+	log4jVersion = "2.14.1"
+	junitVersion = "5.7.1"
+	mockitoVersion = "3.9.0"
+	checkerQualVersion = "3.12.0"
+}
+
+dependencies {
+	//The default compile dependencies are Guava and SLF4J.
+	if (defaultCompileDependencies) {
+		implementation "com.google.guava:guava:${project.guavaVersion}"
+		implementation "org.slf4j:slf4j-api:${project.slf4jVersion}"
+
+		//If the project is also runnable, then we include Log4j as an SLF4J implementation.
+		if (runnable) {
+			implementation "org.apache.logging.log4j:log4j-core:${project.log4jVersion}"
+			implementation "org.apache.logging.log4j:log4j-slf4j18-impl:${project.log4jVersion}"
+		}
+	}
+
+	//Testing.
+	if (testing) {
+		//We enable SLF4J in the test configuration regardless.
+		testImplementation "org.slf4j:slf4j-api:${project.slf4jVersion}"
+		testRuntimeOnly "org.apache.logging.log4j:log4j-core:${project.log4jVersion}"
+		testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j18-impl:${project.log4jVersion}"
+
+		testImplementation "org.junit.jupiter:junit-jupiter-api:${project.junitVersion}"
+		testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${project.junitVersion}"
+		testImplementation "org.assertj:assertj-core:3.19.0"
+		testImplementation "org.mockito:mockito-core:${project.mockitoVersion}"
+		testImplementation "org.mockito:mockito-junit-jupiter:${project.mockitoVersion}"
+	}
+
+	compileOnly "org.checkerframework:checker-qual:${project.checkerQualVersion}"
+	testCompileOnly "org.checkerframework:checker-qual:${project.checkerQualVersion}"
+
+	//Static code analysis.
+	//checkstyle "com.puppycrawl.tools:checkstyle:8.41.1"
+	//checkstyle "com.github.sevntu-checkstyle:sevntu-checks:1.38.0"
+
+	if (!gradle4) {
+		if (useSpotBugs) {
+			compileOnly "com.google.code.findbugs:annotations:3.0.1u2"
+
+			spotbugsPlugins "com.mebigfatguy.sb-contrib:sb-contrib:7.4.7"
+			spotbugsPlugins "com.h3xstream.findsecbugs:findsecbugs-plugin:1.11.0"
+			spotbugsPlugins "jp.skypencil.findbugs.slf4j:bug-pattern:1.5.0@jar"
+		}
+
+		// imagine using oracle java in $CURRENT_YEAR
+		//errorprone "com.google.errorprone:error_prone_core:2.6.0"
+		//errorproneJavac "com.google.errorprone:javac:9+181-r4173-1"
+
+		//annotationProcessor "com.uber.nullaway:nullaway:0.9.1"
+	}
+}
+
+/* IDEA */
+
+idea.project.vcs = "git"
+
+/* TESTING */
+
+if (testing) {
+	test {
+		useJUnitPlatform()
+		finalizedBy jacocoTestReport
+	}
+
+	jacoco {
+		toolVersion = "0.8.6"
+	}
+
+	jacocoTestCoverageVerification {
+		violationRules {
+			rule {
+				element = "CLASS"
+
+				limit {
+					counter = "INSTRUCTION"
+					value = "COVEREDRATIO"
+					minimum = jacocoMinimumInstructionCoverage
+				}
+
+				excludes = jacocoExcludes
+			}
+		}
+	}
+
+	check.dependsOn jacocoTestCoverageVerification
+}
+
+/* DOWNLOAD .editorconfig */
+
+gradle.afterProject {
+	def url = new URL(
+			"https://raw.githubusercontent.com/TheRandomLabs/Common-Gradle/$branch/.editorconfig"
+	)
+	def file = new File(".editorconfig")
+
+	url.withInputStream { input ->
+		file.withOutputStream {
+			it << input
+		}
+	}
+}
+
+/* FORMATTING/STATIC CODE ANALYSIS */
+
+/*checkstyle {
+	config resources.text.fromUri(
+			"https://raw.githubusercontent.com/TheRandomLabs/Common-Gradle/$branch/configs/checkstyle.xml"
+	)
+}*/
+
+/*pmd {
+	toolVersion = "6.29.0"
+	ruleSets = []
+	ruleSetConfig = resources.text.fromUri(
+			"https://raw.githubusercontent.com/TheRandomLabs/Common-Gradle/$branch/configs/pmd.xml"
+	)
+
+	if (!gradle4) {
+		incrementalAnalysis = true
+	}
+}*/
+
+license {
+	include "**/*.java"
+}
+
+if (!gradle4) {
+	/*spotless {
+		format "misc", {
+			target ".gitignore", "*.java", "*.json", "*.gradle", "*.mcmeta", "*.toml", "*.xml"
+			trimTrailingWhitespace()
+			endWithNewline()
+			indentWithTabs()
+		}
+	}*/
+
+	if (useSpotBugs) {
+		spotbugs {
+			excludeFilter = resources.text.fromUri(
+					"https://raw.githubusercontent.com/TheRandomLabs/Common-Gradle/$branch/configs/spotbugs-exclude.xml"
+			).asFile()
+		}
+
+		tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
+			reports {
+				xml.enabled false
+				html.enabled true
+			}
+		}
+	}
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+	options.compilerArgs << "-Xlint:all"
+
+	if (!gradle4 && !name.toLowerCase().contains("test")) {
+		/*options.errorprone {
+			//check("UnusedMethod", net.ltgt.gradle.errorprone.CheckSeverity.OFF)
+			//check("UnusedVariable", net.ltgt.gradle.errorprone.CheckSeverity.OFF)
+			//check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+			option("NullAway:AnnotatedPackages", project.group)
+			option("NullAway:ExcludedClassAnnotations", "org.spongepowered.asm.mixin.Mixin")
+		}*/
+	}
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		if (gradle4) {
+			options.compilerArgs.addAll(["--release", majorJavaVersion])
+		} else {
+			options.release = majorJavaVersionInt
+		}
+	}
+}
+
+/* JAVADOC */
+
+javadoc.options {
+	source = majorJavaVersion
+	encoding = "UTF-8"
+	docTitle = windowTitle = "${project.name} ${project.version}"
+
+	if (majorJavaVersionInt > 10) {
+		links = ["https://docs.oracle.com/en/java/javase/${majorJavaVersion}/docs/api".toString()]
+	} else {
+		links = ["https://docs.oracle.com/javase/${majorJavaVersion}/docs/api/".toString()]
+	}
+
+	links << "https://checkerframework.org/api/"
+}
+
+/* ARTIFACTS */
+
+jar {
+	if (setAutomaticModuleName) {
+		manifest {
+			attributes "Automatic-Module-Name": project.group
+		}
+	}
+
+	if (includeLicense) {
+		from "LICENSE"
+	}
+
+	if (runnable) {
+		manifest {
+			attributes "Main-Class": project.mainClass
+		}
+
+		from {
+			configurations.runtimeClasspath.collect {
+				it.isDirectory() ? it : zipTree(it)
+			}
+		}
+	}
+}
+
+task processSource(type: Sync) {
+	from sourceSets.main.java
+	inputs.property "version", version
+	filter(ReplaceTokens, tokens: [VERSION: version])
+	into "$buildDir/src"
+}
+
+compileJava {
+	sourceCompatibility = javaVersion
+	targetCompatibility = javaVersion
+	source = processSource.outputs
+}
+
+if (buildSourcesJar) {
+	task sourcesJar(type: Jar, dependsOn: classes) {
+		if (gradle4) {
+			classifier "sources"
+		} else {
+			archiveClassifier.set("sources")
+		}
+
+		from sourceSets.main.allSource
+	}
+
+	artifacts {
+		archives sourcesJar
+	}
+}
+
+if (buildJavadocJar) {
+	task javadocJar(type: Jar) {
+		if (gradle4) {
+			classifier "javadoc"
+		} else {
+			archiveClassifier.set("javadoc")
+		}
+
+		from javadoc
+	}
+
+	artifacts {
+		archives javadocJar
+	}
+}
+
+if (registerDefaultMavenPublication) {
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				if (buildSourcesJar) {
+					artifact sourcesJar
+				}
+
+				if (buildJavadocJar) {
+					artifact javadocJar
+				}
+
+				from components.java
+			}
+		}
+	}
+}

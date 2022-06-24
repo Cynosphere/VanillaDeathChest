@@ -2,7 +2,7 @@ import com.modrinth.minotaur.TaskModrinthUpload
 
 plugins {
 	id "java-library"
-	id "fabric-loom" version "0.10-SNAPSHOT"
+	id "fabric-loom" version "0.12-SNAPSHOT"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 	id "com.modrinth.minotaur" version "1.2.1"
 	id "org.cadixdev.licenser" version "0.6.1"
@@ -10,15 +10,15 @@ plugins {
 
 ext {
 	commonGradleBranch = "master"
-	minecraftVersion = "1.18"
-	yarnMappings = "1.18+build.1"
-	loaderVersion = "0.12.6"
-	fabricAPIVersion = "0.43.1+1.18"
-	clothConfigVersion = "6.0.42"
-	modMenuVersion = "3.0.0"
+	minecraftVersion = "1.18.2"
+	yarnMappings = "1.18.2+build.3"
+	loaderVersion = "0.14.6"
+	fabricAPIVersion = "0.53.0+1.18.2"
+	clothConfigVersion = "6.2.62"
+	modMenuVersion = "3.2.2"
 	includeClothConfig = true
 }
-version = "2.1.0-fabric"
+version = "2.1.1-fabric"
 group = "com.therandomlabs.vanilladeathchest"
 archivesBaseName = "vanilladeathchest"
 

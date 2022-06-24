@@ -28,15 +28,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.therandomlabs.vanilladeathchest.VDCConfig;
 import com.therandomlabs.vanilladeathchest.VanillaDeathChest;
+
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Config(name = "spawning")
 public final class Spawning implements ConfigData {
@@ -102,9 +103,7 @@ public final class Spawning implements ConfigData {
 	 */
 	@SuppressWarnings({"ConstantConditions", "NullAway"})
 	public boolean isDimensionEnabled(World world) {
-		final Identifier identifier = world.getRegistryManager().
-				get(Registry.DIMENSION_TYPE_KEY).
-				getId(world.getDimension());
+		final Identifier identifier = world.getRegistryKey().getValue();
 
 		if (identifier == null) {
 			VanillaDeathChest.logger.error(

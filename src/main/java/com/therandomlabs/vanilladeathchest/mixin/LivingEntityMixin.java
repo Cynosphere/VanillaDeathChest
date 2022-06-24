@@ -27,12 +27,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import com.therandomlabs.vanilladeathchest.VanillaDeathChest;
 import com.therandomlabs.vanilladeathchest.config.DefenseEntities;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChest;
 import com.therandomlabs.vanilladeathchest.util.DeathChestDefenseEntity;
 import com.therandomlabs.vanilladeathchest.util.DropsList;
 import com.therandomlabs.vanilladeathchest.world.DeathChestsState;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -45,11 +52,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("ConstantConditions")
 @Mixin(value = LivingEntity.class, priority = Integer.MAX_VALUE)
@@ -85,7 +87,9 @@ public abstract class LivingEntityMixin implements DropsList, DeathChestDefenseE
 
 	@Inject(method = "drop", at = @At("HEAD"))
 	public void dropHead(CallbackInfo info) {
-		if ((Object) this instanceof PlayerEntity) {
+	    final LivingEntity entity = (LivingEntity) (Object) this;
+
+		if (entity instanceof PlayerEntity) {
 			drops.clear();
 			//We can't pass in null here because Campanion mixins into setStack and needs the
 			//player.
@@ -139,7 +143,7 @@ public abstract class LivingEntityMixin implements DropsList, DeathChestDefenseE
 		final LivingEntity entity = (LivingEntity) (Object) this;
 		final PlayerEntity player = entity.getEntityWorld().getPlayerByUuid(deathChestPlayerUUID);
 
-		if ((Object) this instanceof MobEntity) {
+		if (entity instanceof MobEntity) {
 			final MobEntity mobEntity = (MobEntity) (Object) this;
 			mobEntity.setPersistent();
 
@@ -170,7 +174,7 @@ public abstract class LivingEntityMixin implements DropsList, DeathChestDefenseE
 		}
 
 		final BlockPos pos = deathChest.getPos();
-		final double squaredDistanceFromChest = pos.getSquaredDistance(entity.getPos(), true);
+		final double squaredDistanceFromChest = pos.getSquaredDistance(entity.getPos());
 
 		if (squaredDistanceFromChest > config.maxSquaredDistanceFromChest) {
 			final double squaredDistanceFromPlayer = player == null ?

@@ -23,25 +23,27 @@
 
 package com.therandomlabs.vanilladeathchest;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.therandomlabs.vanilladeathchest.command.VDCCommand;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChestAutoRemover;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChestInteractions;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChestPlacer;
 import com.therandomlabs.vanilladeathchest.world.DeathChestsState;
+
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.minecraft.world.GameRules;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The main VanillaDeathChest class.

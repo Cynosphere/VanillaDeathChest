@@ -23,25 +23,25 @@
 
 package com.therandomlabs.vanilladeathchest.deathchest;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.therandomlabs.vanilladeathchest.VDCConfig;
 import com.therandomlabs.vanilladeathchest.VanillaDeathChest;
 import com.therandomlabs.vanilladeathchest.config.KeyItem;
 import com.therandomlabs.vanilladeathchest.util.DeathChestBlockEntity;
+
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Handles death chest interactions.
@@ -138,9 +138,9 @@ public final class DeathChestInteractions {
 		final String message = config.unlockFailureMessage;
 
 		if (!message.isEmpty()) {
-			final Text component = new LiteralText(String.format(
+			final Text component = Text.literal(String.format(
 					message,
-					amount, new TranslatableText(config.item.getTranslationKey()).getString()
+					amount, Text.translatable(config.item.getTranslationKey()).getString()
 			));
 
 			player.sendMessage(component, config.unlockFailureStatusMessage);

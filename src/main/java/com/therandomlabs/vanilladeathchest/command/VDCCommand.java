@@ -39,6 +39,8 @@ import com.therandomlabs.vanilladeathchest.VanillaDeathChest;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChest;
 import com.therandomlabs.vanilladeathchest.deathchest.DeathChestPlacer;
 import com.therandomlabs.vanilladeathchest.world.DeathChestsState;
+
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
@@ -46,7 +48,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -61,7 +63,7 @@ public final class VDCCommand {
 			);
 
 	private static final SimpleCommandExceptionType INVALID_IDENTIFIER_EXCEPTION =
-			new SimpleCommandExceptionType(new LiteralText("Invalid death chest identifier"));
+			new SimpleCommandExceptionType(Text.literal("Invalid death chest identifier"));
 
 	private VDCCommand() {}
 
@@ -69,11 +71,10 @@ public final class VDCCommand {
 	 * Registers the command that reloads the VanillaDeathChest configuration.
 	 *
 	 * @param dispatcher the {@link CommandDispatcher}.
-	 * @param dedicated whether the server is dedicated.
+	 * @param registryAccess the {@link CommandRegistryAccess}.
+	 * @param environment the {@link CommandManager.RegistrationEnvironment}.
 	 */
-	public static void register(
-			CommandDispatcher<ServerCommandSource> dispatcher, boolean dedicated
-	) {
+	public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
 		final LiteralCommandNode<ServerCommandSource> commandNode = dispatcher.register(
 				CommandManager.literal("vanilladeathchest").
 						then(CommandManager.literal("reloadconfig").
@@ -124,7 +125,7 @@ public final class VDCCommand {
 
 	private static int executeReloadConfig(ServerCommandSource source) {
 		VanillaDeathChest.reloadConfig();
-		source.sendFeedback(new LiteralText("VanillaDeathChest configuration reloaded!"), true);
+		source.sendFeedback(Text.literal("VanillaDeathChest configuration reloaded!"), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -147,7 +148,7 @@ public final class VDCCommand {
 			}
 		}
 
-		source.sendFeedback(new LiteralText("Inventory restored!"), true);
+		source.sendFeedback(Text.literal("Inventory restored!"), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -155,7 +156,7 @@ public final class VDCCommand {
 		DeathChestPlacer.placeAndFillContainer(deathChest);
 		DeathChestsState.get(source.getWorld()).addDeathChest(deathChest);
 		final BlockPos pos = deathChest.getPos();
-		source.sendFeedback(new LiteralText(String.format(
+		source.sendFeedback(Text.literal(String.format(
 				"Death chest placed at [%s, %s, %s]", pos.getX(), pos.getY(), pos.getZ()
 		)), true);
 		return Command.SINGLE_SUCCESS;

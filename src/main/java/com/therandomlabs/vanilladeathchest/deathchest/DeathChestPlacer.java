@@ -31,6 +31,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.therandomlabs.vanilladeathchest.VDCConfig;
 import com.therandomlabs.vanilladeathchest.VanillaDeathChest;
@@ -39,6 +41,7 @@ import com.therandomlabs.vanilladeathchest.config.Spawning;
 import com.therandomlabs.vanilladeathchest.util.DeathChestBlockEntity;
 import com.therandomlabs.vanilladeathchest.util.DeathChestDefenseEntity;
 import com.therandomlabs.vanilladeathchest.world.DeathChestsState;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -59,12 +62,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Handles death chest placement.
@@ -160,7 +162,7 @@ public final class DeathChestPlacer {
 		((DeathChestBlockEntity) container).markAsDeathChest();
 
 		if (!config.containerDisplayName.isEmpty()) {
-			container.setCustomName(new LiteralText(config.containerDisplayName));
+			container.setCustomName(Text.literal(config.containerDisplayName));
 		}
 
 		if (doubleChest) {
@@ -174,7 +176,7 @@ public final class DeathChestPlacer {
 			((DeathChestBlockEntity) westContainer).markAsDeathChest();
 
 			if (!config.containerDisplayName.isEmpty()) {
-				westContainer.setCustomName(new LiteralText(config.containerDisplayName));
+				westContainer.setCustomName(Text.literal(config.containerDisplayName));
 			}
 		} else if (items.size() > 27) {
 			items.subList(27, items.size()).clear();
@@ -348,7 +350,7 @@ public final class DeathChestPlacer {
 		);
 
 		if (player != null) {
-			player.sendMessage(new LiteralText(String.format(
+			player.sendMessage(Text.literal(String.format(
 					config.spawnMessage, pos.getX(), pos.getY(), pos.getZ()
 			)), false);
 		}
